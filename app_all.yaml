@@ -1,0 +1,110 @@
+apiVersion: v1
+data:
+  .dockerconfigjson: ****removed***
+kind: Secret
+metadata:
+  name: docsec
+type: kubernetes.io/dockerconfigjson
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: application
+data:
+  MONGO_HOST: mongosvc
+  MONGO_PORT: "27017"
+  BG_COLOR: teal
+  FAIL_FLAG: "false"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: application
+  name: application
+spec:
+  ports:
+  - name: "80"
+    port: 80
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: application
+  type: ClusterIP
+status:
+  loadBalancer: {}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: application
+  labels:
+    app: application
+spec:
+  selector:
+    matchLabels:
+      app: application
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: application
+    spec:
+      initContainers:
+      - name: checkdb
+        image: busybox
+        command:
+        - sh
+        - -c
+        - |
+          while ! nc -zv mongo-0.mongosvc 27017; do
+          sleep 1
+          echo "waiting for mongo-0.mongosvc:27017"
+          done
+          echo "Remote app is running on mongo-0.mongosvc:27017"
+      imagePullSecrets:
+      - name: docsec
+      containers:
+      - name: application
+        image: siarheisaroka/sec:application
+        envFrom:
+        - configMapRef:
+            name: application
+        resources:
+          requests:
+            cpu: "0.2"
+            memory: 64Mi
+          limits:
+            cpu: "0.5"
+            memory: 128Mi
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 5000
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthx
+            port: 5000
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
+
+        ports:
+        - containerPort: 5000
+          name: application
+      restartPolicy: Always
+

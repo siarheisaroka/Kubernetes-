@@ -1,0 +1,29 @@
+# k create ingress nginx --rule=ssaroka.application.com/=application:80
+# minikube start --listen-address='0.0.0.0'
+# sudo sysctl net.ipv4.ip_unprivileged_port_start=80
+# to app
+# kubectl port-forward --address 0.0.0.0 svc/application 80:80
+# to ingress
+# kubectl port-forward --address 0.0.0.0 svc/ingress-nginx-controller 80:80 -n ingress-nginx
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  generation: 1
+  name: nginx
+
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: ssaroka.application.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: application
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+status:
+  loadBalancer: {}
