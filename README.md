@@ -10,10 +10,6 @@ During this course you will become familiar with a lot of tools and technologies
 
 You need to build the app's container images and deploy them to Kubernetes.
 
-## Requirements
-
-- Access to GitLab repository
-- Installed [jq utility](https://stedolan.github.io/jq/download/) 
 
 ## Repository Preparation
 
@@ -45,37 +41,7 @@ You need to prepare *Dockerfile* so that Docker image complyes with the followin
 - Docker image might be placed in **private** DockerHub repository `<nsurname>_application`
 
 
-##### Haskell Dockerfile Linter
 
-Lint, or a linter, is a static code analysis tool used to flag programming errors, bugs, stylistic errors and suspicious constructs.
-
-How to install `hadolint`: [Haskell Dockerfile Linter](https://github.com/hadolint/hadolint#install)
-
-Check if `hadolint` is installed:
-
-```console
-$ hadolint --version
-Haskell Dockerfile Linter 2.7.0-no-git
-```
-Run `hadolint` to lint your Dockerfiles and fix errors and warnings if they are.
-
-**Usage Example:**
-
-```console
-$ cat Dockerfile 
-FROM nginx
-ADD info.conf /etc/nginx/conf.d/default.conf
-
-$ hadolint Dockerfile # 2 issues
-Dockerfile:1 DL3006 warning: Always tag the version of an image explicitly
-Dockerfile:2 DL3020 error: Use COPY instead of ADD for files and folders
-
-$ cat Dockerfile 
-FROM nginx:1.21.3
-COPY info.conf /etc/nginx/conf.d/default.conf
-
-$ hadolint Dockerfile # no issues
-```
 
 ##### Private Docker repository
 
@@ -177,22 +143,6 @@ apiserver: Running
 kubeconfig: Configured
 ```
 
-Enable NGINX Ingress in MiniKube and check if it is running:
-
-```console
-$ minikube addons enable ingress
-    ▪ Using image k8s.gcr.io/ingress-nginx/controller:v1.0.0-beta.3
-    ▪ Using image k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.0
-    ▪ Using image k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.0
-🔎  Verifying ingress addon...
-🌟  The 'ingress' addon is enabled
-
-$ kubectl --context minikube --namespace ingress-nginx get pods
-NAME                                        READY   STATUS      RESTARTS   AGE
-ingress-nginx-admission-create--1-n9w2k     0/1     Completed   0          2m26s
-ingress-nginx-admission-patch--1-cnx7n      0/1     Completed   0          2m26s
-ingress-nginx-controller-69bdbc4d57-f7lfz   1/1     Running     0          2m26s
-```
 
 #### Local Kubernetes Environment Preparation
 
